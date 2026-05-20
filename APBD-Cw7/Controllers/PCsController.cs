@@ -1,40 +1,69 @@
-using APBD_Cw7.Models;
+using APBD_Cw7.DTOs;
+using APBD_Cw7.Exceptions;
+
+using APBD_Cw7.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APBD_Cw7.Controllers;
 
 [ApiController]
 [Route("api/pcs")]
-public class PCsController : ControllerBase
+public class PCsController(IPCService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetPCs()
+    public async Task<IActionResult> GetPCs(CancellationToken cancellationToken)
     {
-        return Ok();
+        var pcs = await service.GetAllPCsAsyncs(cancellationToken);
+        return Ok(pcs);
     }
     
     [HttpGet("{id:int}/components")]
-    public async Task<IActionResult> GetPCComponents([FromRoute] int id)
+    public async Task<IActionResult> GetPCComponents([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return Ok();
+        try
+        {
+            var pc = await service.GetPCByIdAsync(id, cancellationToken);
+            return Ok(pc);
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
     
     [HttpPost]
-    public async Task<IActionResult> CreatePC()
+    public async Task<IActionResult> CreatePC([FromBody] CreatePCDto dto, CancellationToken cancellationToken)
     {
-        return Created();
+        var created = await service.CreatePCAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetPCComponents), new {id = created.Id}, created);
     }
     
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdatePC([FromRoute] int id)
+    public async Task<IActionResult> UpdatePC([FromRoute] int id, [FromBody] UpdatePCDto dto, CancellationToken cancellationToken)
     {
-        return Ok();
+        try
+        {
+            await service.UpdatePCAsync(id, dto, cancellationToken);
+            return NoContent();
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
     
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeletePC([FromRoute] int id)
+    public async Task<IActionResult> DeletePC([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return NoContent();
+        try
+        {
+            await service.DeletePCAsync(id, cancellationToken);
+            return NoContent();
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
     
 }
