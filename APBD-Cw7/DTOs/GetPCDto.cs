@@ -1,8 +1,9 @@
 namespace APBD_Cw7.DTOs;
 
-public record PcRequestDto(
+public record GetPCDto(
+    int Id,
     string Name,
-    double Weight,
+    float Weight,
     int Warranty,
     DateTime CreatedAt,
     int Stock
